@@ -1,0 +1,12 @@
+# Dependency
+node_modules/
+
+# dotenv environment variable files
+.env
+.env.*
+!.env.example
+
+# Stack docker swarm
+myCrud-stack.yml
+
+features

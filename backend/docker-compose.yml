@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASS=q1w2e3r4t5
+      - DB_NAME=usersdb
+    volumes:
+      - ./app
+
+networks:
+  network_public:
+    external: true
+
+volumes:
+  postgres_data:
