@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 interface ShoppingList {
   id: string;
   user_id: string;
-  title: string;
+  name: string;
   completed_items: number;
   total_items: number;
   created_at: Date;
@@ -27,7 +27,7 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({ list, onClic
     >
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-bold text-gray-800 tracking-wide">
-          {list.title}
+          {list.name}
         </h3>
         <span className="text-gray-600 font-medium text-sm">
           {list.completed_items}/{list.total_items}

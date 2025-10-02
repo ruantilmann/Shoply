@@ -1,5 +1,5 @@
 import express from 'express';
-import { createList, getListsForUser } from '../controllers/shoppingListController.js';
+import { createList, getListsForUser, getListById } from '../controllers/shoppingListController.js';
 import { addItemToList, updateItemInList, removeItemFromList } from '../controllers/ShoppingListItemController.js';
 import { authMiddleware } from '../middleware/auth.js';
 
@@ -50,6 +50,8 @@ const router = express.Router()
 router.route('/lists')
     .post(authMiddleware, createList)
     .get(authMiddleware, getListsForUser);
+
+router.route('/lists/:id').get(authMiddleware, getListById);
 
 /**
  * @swagger
