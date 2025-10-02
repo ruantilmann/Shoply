@@ -3,13 +3,23 @@ import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { ShoppingListCard } from '@/components/dashboard/shopping-list-card';
 import { FloatingActionMenu } from '@/components/dashboard/floating-action-menu';
 import { useToast } from '@/hooks/use-toast';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 import api from '@/api/axiosConfig';
 
 interface ShoppingList {
   id: string;
   user_id: string;
-  title: string;
+  name: string;
   completed_items: number;
   total_items: number;
   created_at: Date;
@@ -20,52 +30,34 @@ const Dashboard = () => {
   const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('USUÁRIO');
+  const [isCreateListDialogOpen, setCreateListDialogOpen] = useState(false);
+  const [newListName, setNewListName] = useState('');
+  const [isCreateProductDialogOpen, setCreateProductDialogOpen] = useState(false);
+  const [newProductName, setNewProductName] = useState('');
+  const [newProductPrice, setNewProductPrice] = useState('');
+  const [newProductDescription, setNewProductDescription] = useState('');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Get user data from localStorage or API
         const userData = localStorage.getItem('user');
         if (userData) {
           const user = JSON.parse(userData);
           setUserName(user.name || user.email?.split('@')[0] || 'USUÁRIO');
         }
 
-        // Fetch shopping lists from API using axios
         const response = await api.get('/lists');
-
         if (response.status === 200) {
           setShoppingLists(response.data);
-        } else {
-          // Mock data for development
-          setShoppingLists([
-            {
-              id: '1',
-              user_id: '1',
-              title: 'COMPRA HORTIFRUTI',
-              completed_items: 1,
-              total_items: 18,
-              created_at: new Date(),
-              updated_at: new Date(),
-            },
-            {
-              id: '2',
-              user_id: '1',
-              title: 'JANTAR TERÇA',
-              completed_items: 3,
-              total_items: 7,
-              created_at: new Date(),
-              updated_at: new Date(),
-            },
-          ]);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
-          title: "Erro",
-          description: "Não foi possível carregar as listas",
-          variant: "destructive",
+          title: 'Erro',
+          description: 'Não foi possível carregar as listas',
+          variant: 'destructive',
         });
       } finally {
         setLoading(false);
@@ -76,13 +68,83 @@ const Dashboard = () => {
   }, [toast]);
 
   const handleListClick = (listId: string) => {
-    // Navigate to list details
-    console.log('Navigate to list:', listId);
+    navigate(`/lists/${listId}`);
   };
 
   const handleMenuAction = (action: string) => {
-    // Handle floating menu actions
-    console.log('Menu action:', action);
+    if (action === 'new-list') {
+      setCreateListDialogOpen(true);
+    } else if (action === 'items') {
+      setCreateProductDialogOpen(true);
+    } else {
+      console.log('Menu action:', action);
+    }
+  };
+
+  const handleCreateList = async () => {
+    if (!newListName.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'O nome da lista não pode estar vazio.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await api.post('/lists', { name: newListName });
+      if (response.status === 201) {
+        setShoppingLists([...shoppingLists, response.data]);
+        toast({
+          title: 'Sucesso',
+          description: 'Lista de compras criada.',
+        });
+        setNewListName('');
+        setCreateListDialogOpen(false);
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível criar a lista de compras.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCreateProduct = async () => {
+    if (!newProductName.trim() || !newProductPrice.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'Nome e preço do produto são obrigatórios.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await api.post('/products/createProduct', {
+        name: newProductName,
+        price: parseFloat(newProductPrice),
+        description: newProductDescription,
+      });
+
+      if (response.status === 201) {
+        toast({
+          title: 'Sucesso',
+          description: 'Produto criado com sucesso.',
+        });
+        setNewProductName('');
+        setNewProductPrice('');
+        setNewProductDescription('');
+        setCreateProductDialogOpen(false);
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível criar o produto.',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading) {
@@ -96,7 +158,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader userName={userName} />
-      
+
       <main className="container mx-auto px-4 py-6 pb-24">
         {shoppingLists.length === 0 ? (
           <div className="text-center py-12">
@@ -121,6 +183,59 @@ const Dashboard = () => {
       </main>
 
       <FloatingActionMenu onAction={handleMenuAction} />
+
+      <Dialog open={isCreateListDialogOpen} onOpenChange={setCreateListDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Nova Lista de Compras</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Nome da lista"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+            <Button onClick={handleCreateList}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCreateProductDialogOpen} onOpenChange={setCreateProductDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Novo Produto</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <Input
+              placeholder="Nome do produto"
+              value={newProductName}
+              onChange={(e) => setNewProductName(e.target.value)}
+            />
+            <Input
+              placeholder="Preço"
+              type="number"
+              value={newProductPrice}
+              onChange={(e) => setNewProductPrice(e.target.value)}
+            />
+            <Input
+              placeholder="Descrição (opcional)"
+              value={newProductDescription}
+              onChange={(e) => setNewProductDescription(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+            <Button onClick={handleCreateProduct}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -44,3 +44,24 @@ export const getListsForUser = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+export const getListById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const shoppingList = await ShoppingList.findByPk(id, {
+            include: {
+                model: Product,
+                as: 'products',
+                through: { attributes: ['quantity'] } // Include quantity from the join table
+            }
+        });
+
+        if (!shoppingList) {
+            return res.status(404).json({ error: 'Shopping list not found' });
+        }
+
+        res.status(200).json(shoppingList);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
