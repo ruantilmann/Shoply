@@ -1,0 +1,13 @@
+# Dependências e arquivos de build local
+node_modules
+dist
+
+# Arquivos Git e de ambiente
+.git
+.env
+
+# Arquivos de configuração do Docker
+Dockerfile
+
+# Logs e arquivos de debug
+npm-debug.log

@@ -1,0 +1,10 @@
+# Ignorar dependências, arquivos git e de ambiente
+node_modules
+.git
+.env
+.env.*
+Dockerfile
+
+# Ignorar arquivos de documentação e desenvolvimento
+README.md
+TROUBLESHOOTING.md
